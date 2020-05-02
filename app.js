@@ -2,21 +2,19 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const graphqlHttp = require('express-graphql'); // used in place where express expects middleware func
 const { buildSchema } = require('graphql');
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
-const EventFX = require('./models/event');
+const EventMGS = require('./models/event');
+const UserMGS = require('./models/user');
 
 const app = express();
-
-const globalEvents = []; // global per no db
 
 app.use(bodyParser.json());
 
 app.use('/graphql', graphqlHttp({
     schema: buildSchema(`
-        type RootQueryFX {
-            events: [EventFX!]!
-        }
+
         
         type EventFX {
             _id: ID!
@@ -26,6 +24,13 @@ app.use('/graphql', graphqlHttp({
             date: String!
         }
         
+        type UserFX {
+            _id: ID!
+            username: String
+            email: String!
+            password: String
+        }
+        
         input EventInput {
             title: String!
             description: String!
@@ -33,8 +38,19 @@ app.use('/graphql', graphqlHttp({
             date: String!
         }
         
+        input UserInput {
+            username: String
+            email: String!
+            password: String!
+        }            
+        
+        type RootQueryFX {
+            events: [EventFX!]!
+        }
+        
         type RootMutationFX {
-            createEvent(inputArg: EventInput): EventFX
+            createEvent(eventArg: EventInput): EventFX
+            createUser(userArg: UserInput): UserFX
         }
         
         schema {
@@ -44,7 +60,7 @@ app.use('/graphql', graphqlHttp({
     `),
     rootValue: { // points to resolver functions, should match to schema names
         events: () => {
-            return EventFX.find()
+            return EventMGS.find()
                 .then(events => {
                     return events.map(event => {
                         return { ...event._doc }; // IMPT: no longer necessary
@@ -55,11 +71,11 @@ app.use('/graphql', graphqlHttp({
                 }); //mgse constructor methods "all"
         },
         createEvent: (args) => {
-            const event = new EventFX({
-                title: args.inputArg.title,
-                description: args.inputArg.description,
-                price: +args.inputArg.price, //converted to float
-                date: new Date(args.inputArg.date)
+            const event = new EventMGS({
+                title: args.eventArg.title,
+                description: args.eventArg.description,
+                price: +args.eventArg.price, //converted to float
+                date: new Date(args.eventArg.date)
             });
             return event
                 .save()
@@ -70,6 +86,24 @@ app.use('/graphql', graphqlHttp({
                     console.log(err);
                     throw err;
                 }); //mongoose method
+        },
+        createUser: (args) => {
+            return bcrypt
+                .hash(args.userArg.password, 12)
+                .then(hashedPassword => {
+                    const user = new UserMGS({
+                        username: args.userArg.username,
+                        email: args.userArg.email,
+                        password: hashedPassword,
+                    });
+                    return user.save();
+                })
+                .then(result => {
+                    return { ...result._doc, password: null };
+                })
+                .catch(err => {
+                throw err;
+            });
         }
     },
     graphiql: true
