@@ -4,6 +4,8 @@ const graphqlHttp = require('express-graphql'); // used in place where express e
 const { buildSchema } = require('graphql');
 const mongoose = require('mongoose');
 
+const EventFX = require('./models/event');
+
 const app = express();
 
 const globalEvents = []; // global per no db
@@ -42,18 +44,32 @@ app.use('/graphql', graphqlHttp({
     `),
     rootValue: { // points to resolver functions, should match to schema names
         events: () => {
-            return globalEvents;
+            return EventFX.find()
+                .then(events => {
+                    return events.map(event => {
+                        return { ...event._doc }; // IMPT: no longer necessary
+                    });
+                })
+                .catch(err => {
+                    throw err;
+                }); //mgse constructor methods "all"
         },
         createEvent: (args) => {
-            const event = {
-                _id: Math.random().toString(),
+            const event = new EventFX({
                 title: args.inputArg.title,
                 description: args.inputArg.description,
                 price: +args.inputArg.price, //converted to float
-                date: args.inputArg.date//new Date().toISOString()
-            };
-            globalEvents.push(event);
-            return event;
+                date: new Date(args.inputArg.date)
+            });
+            return event
+                .save()
+                .then(result => {
+                    console.log(result);
+                    return {...result._doc} //property provided by mgse sans metadata (deprecated)
+                }).catch(err => {
+                    console.log(err);
+                    throw err;
+                }); //mongoose method
         }
     },
     graphiql: true
