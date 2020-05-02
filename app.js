@@ -12,16 +12,46 @@ const app = express();
 
 app.use(bodyParser.json());
 
+const getEvents = eventIdPool => {
+    return EventMGS.find({_id: {$in: eventIdPool}})
+        .then(events => {
+            return events.map(event => {
+                return {
+                    ...event._doc,
+                    _id: event.id,
+                    //overwrite id & user by hoisting
+                    creator: getUser.bind(this, event.creator)}
+            })
+        })
+        .catch(err => {
+            throw err;
+        })
+};
+
+const getUser = userID => {
+    return UserMGS.findById(userID)
+        .then(user => {
+            return {
+                ...user._doc,
+                _id: user.id,
+                //below: summons function upon graphQL query
+                createdEvents: getEvents.bind(this, user._doc.createdEvents)
+            };
+        })
+        .catch(err=> {
+            throw err;
+        });
+};
+
 app.use('/graphql', graphqlHttp({
     schema: buildSchema(`
-
-        
         type EventFX {
             _id: ID!
             title: String!
             description: String!
             price: Float!
             date: String!
+            creator: UserFX!
         }
         
         type UserFX {
@@ -29,6 +59,7 @@ app.use('/graphql', graphqlHttp({
             username: String
             email: String!
             password: String
+            createdEvents: [EventFX!]
         }
         
         input EventInput {
@@ -61,9 +92,14 @@ app.use('/graphql', graphqlHttp({
     rootValue: { // points to resolver functions, should match to schema names
         events: () => {
             return EventMGS.find()
+                // .populate('creator') //IMPT: finds reference by ref key
                 .then(events => {
                     return events.map(event => {
-                        return { ...event._doc }; // IMPT: no longer necessary
+                        return {
+                            ...event._doc,
+                            _id: event.id,
+                            creator: getUser.bind(this, event._doc.creator)
+                        };
                     });
                 })
                 .catch(err => {
