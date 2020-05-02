@@ -4,9 +4,9 @@ const EventMGS = require('../../models/event');
 const UserMGS = require('../../models/user');
 const BookingMGS = require('../../models/booking');
 
-const getEvents = async eventIdPool => {
+const getEventsList = async eventIdPool => { //args: array
     try {
-        const events = await EventMGS.find({ _id: { $in: eventIdPool } });
+        const events = await EventMGS.find({ _id: { $in: eventIdPool } }); //mgse query to look inside args arr
         return events.map(event => {
             return {
                 ...event._doc,
@@ -21,6 +21,19 @@ const getEvents = async eventIdPool => {
     }
 };
 
+const getEvent = async eventId => {
+    try {
+        const event = await EventMGS.findById(eventId);
+        return {
+            ...event._doc,
+            _id: event.id,
+            creator: getUser.bind(this, event.creator)
+        };
+    } catch (err) {
+        throw err;
+    }
+};
+
 const getUser = async userId => {
     try {
         const user = await UserMGS.findById(userId);
@@ -28,7 +41,7 @@ const getUser = async userId => {
             ...user._doc,
             _id: user.id,
             //below: summons function upon graphQL query
-            createdEvents: getEvents.bind(this, user._doc.createdEvents)
+            createdEvents: getEventsList.bind(this, user._doc.createdEvents)
         };
     } catch (err) {
         throw err;
@@ -41,7 +54,7 @@ const getUser = async userId => {
 //                 ...user._doc,
 //                 _id: user.id,
 //                 //below: summons function upon graphQL query
-//                 createdEvents: getEvents.bind(this, user._doc.createdEvents)
+//                 createdEvents: getEventsList.bind(this, user._doc.createdEvents)
 //             };
 //         })
 //         .catch(err=> {
@@ -73,6 +86,8 @@ module.exports = { //note: resolver functions should match to schema names
               return {
                   ...booking._doc,
                   _id: booking.id,
+                  user: getUser.bind(this, booking._doc.user),
+                  event: getEvent.bind(this, booking._doc.event),
                   createdAt: new Date(booking._doc.createdAt).toISOString(),
                   updatedAt: new Date(booking._doc.updatedAt).toISOString()
                   };
@@ -136,7 +151,7 @@ module.exports = { //note: resolver functions should match to schema names
         }
     },
     createBooking: async args => {
-            const targetEvent = await BookingMGS.findOne({ _id: args.eventId });
+            const targetEvent = await EventMGS.findOne({ _id: args.eventId });
             const createdBooking = new BookingMGS({
                 user: '5ead19fb2a9f056318fce297',
                 event: targetEvent
@@ -146,9 +161,27 @@ module.exports = { //note: resolver functions should match to schema names
             return {
                 ...result._doc,
                 _id: result.id,
+                user: getUser.bind(this, result._doc.user),
+                event: getEvent.bind(this, result._doc.event),
                 createdAt: new Date(result._doc.createdAt).toISOString(),
                 updatedAt: new Date(result._doc.updatedAt).toISOString()
             }
+    },
+    cancelBooking: async args => {
+        try {
+            const targetBooking = await BookingMGS.findById(args.bookingId).populate('event');
+            const targetEvent = {
+                ...targetBooking.event._doc,
+                _id: targetBooking.event.id,
+                creator: getUser.bind(this, targetBooking.event._doc.creator)
+            };
+            // return targetBooking.destroy()
+            await BookingMGS.deleteOne({ _id: args.bookingId });
+            console.log(targetEvent);
+            return targetEvent;
+        } catch (err) {
+            throw err;
+        }
 
     }
 };
