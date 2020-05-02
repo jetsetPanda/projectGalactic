@@ -2,16 +2,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const graphqlHttp = require('express-graphql'); // used in place where express expects middleware func
 const { buildSchema } = require('graphql');
+const mongoose = require('mongoose');
 
 const app = express();
 
 const globalEvents = []; // global per no db
 
 app.use(bodyParser.json());
-
-// app.get('/', (req, res, next) => {
-//     res.send('Hallo Vorld!');
-// }) vvvvv sub below
 
 app.use('/graphql', graphqlHttp({
     schema: buildSchema(`
@@ -55,8 +52,6 @@ app.use('/graphql', graphqlHttp({
                 price: +args.inputArg.price, //converted to float
                 date: args.inputArg.date//new Date().toISOString()
             };
-            console.log(event);
-            console.log(args);
             globalEvents.push(event);
             return event;
         }
@@ -64,4 +59,4 @@ app.use('/graphql', graphqlHttp({
     graphiql: true
 }));
 
-app.listen(3000);
+mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@upgalactic-b8cic.mongodb.net/${process.env.MONGO_DB}?retryWrites=true`).then(() => { app.listen(3000); }).catch(err => { console.log(err); });
