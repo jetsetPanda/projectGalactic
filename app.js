@@ -5,6 +5,8 @@ const { buildSchema } = require('graphql');
 
 const app = express();
 
+const globalEvents = []; // global per no db
+
 app.use(bodyParser.json());
 
 // app.get('/', (req, res, next) => {
@@ -14,11 +16,26 @@ app.use(bodyParser.json());
 app.use('/graphql', graphqlHttp({
     schema: buildSchema(`
         type RootQueryFX {
-            events: [String!]!
+            events: [EventFX!]!
+        }
+        
+        type EventFX {
+            _id: ID!
+            title: String!
+            description: String!
+            price: Float!
+            date: String!
+        }
+        
+        input EventInput {
+            title: String!
+            description: String!
+            price: Float!
+            date: String!
         }
         
         type RootMutationFX {
-            createEvent(name: String): String
+            createEvent(inputArg: EventInput): EventFX
         }
         
         schema {
@@ -26,15 +43,25 @@ app.use('/graphql', graphqlHttp({
             mutation: RootMutationFX
         }
     `),
-    rootValue: {
+    rootValue: { // points to resolver functions, should match to schema names
         events: () => {
-            return ['Galactic', 'jetset af', 'The only way to space'];
+            return globalEvents;
         },
         createEvent: (args) => {
-            const eventName = args.name;
-            return eventName;
+            const event = {
+                _id: Math.random().toString(),
+                title: args.inputArg.title,
+                description: args.inputArg.description,
+                price: +args.inputArg.price, //converted to float
+                date: args.inputArg.date//new Date().toISOString()
+            };
+            console.log(event);
+            console.log(args);
+            globalEvents.push(event);
+            return event;
         }
-    } // points to resolver functions, should match to schema names
+    },
+    graphiql: true
 }));
 
 app.listen(3000);
