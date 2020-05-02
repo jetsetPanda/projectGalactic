@@ -75,21 +75,39 @@ app.use('/graphql', graphqlHttp({
                 title: args.eventArg.title,
                 description: args.eventArg.description,
                 price: +args.eventArg.price, //converted to float
-                date: new Date(args.eventArg.date)
+                date: new Date(args.eventArg.date),
+                creator: '5eacfc356fb89b44e45ea4b2'
             });
+            let createdEvent;
             return event
                 .save()
                 .then(result => {
-                    console.log(result);
-                    return {...result._doc} //property provided by mgse sans metadata (deprecated)
-                }).catch(err => {
+                    createdEvent = {...result._doc};
+                    return UserMGS.findById('5eacfc356fb89b44e45ea4b2');
+                })
+                .then(user=> {
+                    if (!user) {
+                        throw new Error('User cannot be found.');
+                    }
+                    user.createdEvents.push(event); //mgse method linking to user via schema
+                    return user.save();
+                })
+                .then(result => {
+                    return createdEvent;
+                })
+                .catch(err => {
                     console.log(err);
                     throw err;
                 }); //mongoose method
         },
-        createUser: (args) => {
-            return bcrypt
-                .hash(args.userArg.password, 12)
+        createUser: args => {
+            return UserMGS.findOne({email: args.userArg.email})
+                .then(user=>{
+                    if (user) {
+                        throw new Error('User already created.');
+                    }
+                    return bcrypt.hash(args.userArg.password, 12)
+                })
                 .then(hashedPassword => {
                     const user = new UserMGS({
                         username: args.userArg.username,
