@@ -44,6 +44,7 @@ module.exports = { //note: resolver functions should match to schema names
                     return {
                         ...event._doc,
                         _id: event.id,
+                        date: new Date(event._doc.date).toISOString(),
                         creator: getUser.bind(this, event._doc.creator)
                     };
                 });
@@ -67,6 +68,7 @@ module.exports = { //note: resolver functions should match to schema names
             createdEvent = {
                 ...result._doc,
                 _id: result._doc._id.toString(),
+                date: new Date(event._doc.date).toISOString(),
                 //merging below via graphQL method parser
                 creator: getUser.bind(this, result._doc.creator)
             };
