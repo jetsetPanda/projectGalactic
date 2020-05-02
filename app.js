@@ -13,23 +13,24 @@ const app = express();
 app.use(bodyParser.json());
 
 const getEvents = eventIdPool => {
-    return EventMGS.find({_id: {$in: eventIdPool}})
+    return EventMGS.find({ _id: { $in: eventIdPool } })
         .then(events => {
             return events.map(event => {
                 return {
                     ...event._doc,
                     _id: event.id,
                     //overwrite id & user by hoisting
-                    creator: getUser.bind(this, event.creator)}
-            })
+                    creator: getUser.bind(this, event.creator)
+                };
+            });
         })
         .catch(err => {
             throw err;
-        })
+        });
 };
 
-const getUser = userID => {
-    return UserMGS.findById(userID)
+const getUser = userId => {
+    return UserMGS.findById(userId)
         .then(user => {
             return {
                 ...user._doc,
@@ -118,7 +119,12 @@ app.use('/graphql', graphqlHttp({
             return event
                 .save()
                 .then(result => {
-                    createdEvent = {...result._doc};
+                    createdEvent = {
+                        ...result._doc,
+                        _id: result._doc._id.toString(),
+                        //merging below via graphQL method parser
+                        creator: getUser.bind(this, result._doc.creator)
+                    };
                     return UserMGS.findById('5eacfc356fb89b44e45ea4b2');
                 })
                 .then(user=> {
