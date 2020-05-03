@@ -16,7 +16,10 @@ const transformBooking = bookingObj => {
 
 
 module.exports = { //note: resolver functions should match to schema names
-    bookings: async () => {
+    bookings: async (args, req) => {
+        if (!req.withAuth) {
+            throw new Error('Error: Not Authenticated');
+        }
         try {
             const bookings = await BookingMGS.find();
             return bookings.map(booking => {
@@ -27,17 +30,23 @@ module.exports = { //note: resolver functions should match to schema names
             throw err;
         }
     },
-    createBooking: async args => {
+    createBooking: async (args, req) => {
+        if (!req.withAuth) {
+            throw new Error('Error: Not Authenticated');
+        }
         const targetEvent = await EventMGS.findOne({ _id: args.eventId });
         const createdBooking = new BookingMGS({
-            user: '5ead19fb2a9f056318fce297',
+            user: req.userId,
             event: targetEvent
         });
 
         const result = await createdBooking.save();
         return transformBooking(result);
     },
-    cancelBooking: async args => {
+    cancelBooking: async (args, req) => {
+        if (!req.withAuth) {
+            throw new Error('Error: Not Authenticated');
+        }
         try {
             const targetBooking = await BookingMGS.findById(args.bookingId).populate('event');
             const targetEvent = transformEvent(targetBooking.event);

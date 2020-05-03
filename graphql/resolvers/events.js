@@ -1,4 +1,5 @@
 const EventMGS = require('../../models/event');
+const UserMGS = require('../../models/user');
 const { transformEvent } = require('./getters');
 
 module.exports = {
@@ -22,13 +23,13 @@ module.exports = {
             description: args.eventArg.description,
             price: +args.eventArg.price, //converted to float
             date: new Date(args.eventArg.date),
-            creator: '5ead19fb2a9f056318fce297'
+            creator: req.userId
         });
         let createdEvent;
         try {
             const result = await event.save();
             createdEvent = transformEvent(result);
-            const eventCreator = await UserMGS.findById('5ead19fb2a9f056318fce297');
+            const eventCreator = await UserMGS.findById(req.userId);
 
             if (!eventCreator) {
                 throw new Error('User cannot be found.');
