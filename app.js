@@ -13,6 +13,20 @@ const app = express();
 
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+    // allow every client location allow reqs to api
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    // control specific reqs sent:
+    res.setHeader('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
+    // controls type of headers in reqs
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // handle options - block send to graphql
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 app.use(withAuth);
 
 app.use('/graphql', graphqlHttp({
@@ -21,4 +35,11 @@ app.use('/graphql', graphqlHttp({
     graphiql: true
 }));
 
-mongoose.connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@upgalactic-b8cic.mongodb.net/${process.env.MONGO_DB}?retryWrites=true`).then(() => { app.listen(3000); }).catch(err => { console.log(err); });
+mongoose
+    .connect(`mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWORD}@upgalactic-b8cic.mongodb.net/${process.env.MONGO_DB}?retryWrites=true`)
+    .then(() => {
+        app.listen(8000);
+    })
+    .catch(err => {
+        console.log(err);
+    });
