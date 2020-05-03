@@ -3,11 +3,21 @@ import React, {Component} from 'react';
 import './Login.css'
 
 class LoginPage extends Component {
+    state = {
+        isLoggedIn: true
+    };
+
     constructor(props) {
         super(props);
         this.emailElemFX = React.createRef();
         this.passwordElemFX = React.createRef();
     }
+
+    handleClick = () => {
+        this.setState(prevState => {
+            return { isLoggedIn: !prevState.isLoggedIn}
+        })
+    };
 
     handleSubmit = (event) => {
         event.preventDefault();
@@ -20,8 +30,24 @@ class LoginPage extends Component {
 
         console.log(email,password);
 
-        const requestBody = {
+        let requestBody = {
             query: `
+                query {
+                    login(
+                        email: "${email}",
+                        password: "${password}"
+                    ) {
+                        userId
+                        token
+                        tokenExpiration
+                    }
+                }
+            `
+        };
+
+        if (!this.state.isLoggedIn) {
+            requestBody = {
+                query: `
                 mutation{
                     createUser(userArg: {
                         email: "${email}",
@@ -32,15 +58,25 @@ class LoginPage extends Component {
                     }
                 }
             `,
-        };
+            };
+        }
 
         fetch('http://localhost:8000/graphql', {
-            method: 'POST', //cuz graphQL ;)
+            method: 'POST',
             body: JSON.stringify(requestBody),
             headers: {
                 'Content-Type': 'application/json'
             }
-        })
+        }).then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error('Req Failed.');
+            }
+            return res.json();
+        }).then(resData => {
+            console.log(resData);
+        }).catch(err => {
+            console.log(err)
+        });
 
     };
 
@@ -58,7 +94,7 @@ class LoginPage extends Component {
                 </div>
                 <div className="form-action">
                     <button type="submit">Submit</button>
-                    <button type="button">Sign Up</button>
+                    <button type="button" onClick={this.handleClick}>Click to {this.state.isLoggedIn ? 'Signup': 'Login'}</button>
 
 
                 </div>
