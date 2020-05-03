@@ -3,18 +3,34 @@ const bcrypt = require('bcryptjs');
 const EventMGS = require('../../models/event');
 const UserMGS = require('../../models/user');
 const BookingMGS = require('../../models/booking');
+const { dateHelper } = require('../../helpers/index');
 
-const getEventsList = async eventIdPool => { //args: array
+const transformEvent = eventObj => {
+    return {
+        ...eventObj._doc,
+        _id: eventObj.id,
+        //overwrite id & user by hoisting
+        date: dateHelper(eventObj._doc.date),
+        creator: getUser.bind(this, eventObj.creator)
+    };
+};
+
+const transformBooking = bookingObj => {
+    return {
+        ...bookingObj._doc,
+        _id: bookingObj.id,
+        user: getUser.bind(this, bookingObj._doc.user),
+        event: getEvent.bind(this, bookingObj._doc.event),
+        createdAt: dateHelper(bookingObj._doc.createdAt),
+        updatedAt: dateHelper(bookingObj._doc.updatedAt)
+    }
+};
+
+const getEventsList = async eventIdList => { //args: array
     try {
-        const events = await EventMGS.find({ _id: { $in: eventIdPool } }); //mgse query to look inside args arr
+        const events = await EventMGS.find({ _id: { $in: eventIdList } }); //mgse query to look inside args arr
         return events.map(event => {
-            return {
-                ...event._doc,
-                _id: event.id,
-                //overwrite id & user by hoisting
-                date: new Date(event._doc.date).toISOString(),
-                creator: getUser.bind(this, event.creator)
-            };
+            return transformEvent(event);
         });
     } catch(err) {
       throw err;
@@ -24,11 +40,7 @@ const getEventsList = async eventIdPool => { //args: array
 const getEvent = async eventId => {
     try {
         const event = await EventMGS.findById(eventId);
-        return {
-            ...event._doc,
-            _id: event.id,
-            creator: getUser.bind(this, event.creator)
-        };
+        return transformEvent(event);
     } catch (err) {
         throw err;
     }
@@ -40,6 +52,7 @@ const getUser = async userId => {
         return {
             ...user._doc,
             _id: user.id,
+            password: "hashed", //ako ra remove
             //below: summons function upon graphQL query
             createdEvents: getEventsList.bind(this, user._doc.createdEvents)
         };
@@ -68,12 +81,7 @@ module.exports = { //note: resolver functions should match to schema names
             const events = await EventMGS.find();
             // .populate('creator') //IMPT: finds reference by ref key
             return events.map(event => {
-                return {
-                    ...event._doc,
-                    _id: event.id,
-                    date: new Date(event._doc.date).toISOString(),
-                    creator: getUser.bind(this, event._doc.creator)
-                };
+                return transformEvent(event);
             });
         } catch(err) {
                 throw err;
@@ -83,14 +91,7 @@ module.exports = { //note: resolver functions should match to schema names
       try {
           const bookings = await BookingMGS.find();
           return bookings.map(booking => {
-              return {
-                  ...booking._doc,
-                  _id: booking.id,
-                  user: getUser.bind(this, booking._doc.user),
-                  event: getEvent.bind(this, booking._doc.event),
-                  createdAt: new Date(booking._doc.createdAt).toISOString(),
-                  updatedAt: new Date(booking._doc.updatedAt).toISOString()
-                  };
+              return transformBooking(booking);
           });
 
       }  catch(err) {
@@ -108,13 +109,7 @@ module.exports = { //note: resolver functions should match to schema names
         let createdEvent;
         try {
             const result = await event.save();
-            createdEvent = {
-                ...result._doc,
-                _id: result._doc._id.toString(),
-                date: new Date(event._doc.date).toISOString(),
-                //merging below via graphQL method parser
-                creator: getUser.bind(this, result._doc.creator)
-            };
+            createdEvent = transformEvent(result);
             const eventCreator = await UserMGS.findById('5ead19fb2a9f056318fce297');
 
             if (!eventCreator) {
@@ -158,23 +153,12 @@ module.exports = { //note: resolver functions should match to schema names
             });
 
             const result = await createdBooking.save();
-            return {
-                ...result._doc,
-                _id: result.id,
-                user: getUser.bind(this, result._doc.user),
-                event: getEvent.bind(this, result._doc.event),
-                createdAt: new Date(result._doc.createdAt).toISOString(),
-                updatedAt: new Date(result._doc.updatedAt).toISOString()
-            }
+            return transformBooking(result);
     },
     cancelBooking: async args => {
         try {
             const targetBooking = await BookingMGS.findById(args.bookingId).populate('event');
-            const targetEvent = {
-                ...targetBooking.event._doc,
-                _id: targetBooking.event.id,
-                creator: getUser.bind(this, targetBooking.event._doc.creator)
-            };
+            const targetEvent = transformEvent(targetBooking.event);
             // return targetBooking.destroy()
             await BookingMGS.deleteOne({ _id: args.bookingId });
             console.log(targetEvent);
@@ -182,6 +166,5 @@ module.exports = { //note: resolver functions should match to schema names
         } catch (err) {
             throw err;
         }
-
     }
 };
