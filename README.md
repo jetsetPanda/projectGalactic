@@ -1,5 +1,5 @@
 # projectGalactic
-Booking Web App for UP Galactic Spaceways
+Booking Web App for a company in a galaxy far far away
 
 Utilizing:
 React / React Native
