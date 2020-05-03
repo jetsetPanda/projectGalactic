@@ -1,0 +1,33 @@
+{
+  "name": "projectgalactic",
+  "version": "1.0.0",
+  "description": "UpGalactic Booking Engine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jetsetPanda/projectGalactic.git"
+  },
+  "keywords": [
+    "jetset"
+  ],
+  "author": "jetsetPanda",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jetsetPanda/projectGalactic/issues"
+  },
+  "homepage": "https://github.com/jetsetPanda/projectGalactic#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "express-graphql": "^0.9.0",
+    "graphql": "^15.0.0",
+    "mongodb": "^3.5.7",
+    "mongoose": "^5.9.11",
+    "nodemon": "^2.0.3"
+  }
+}
