@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const UserMGS = require('../../models/user');
 
@@ -27,5 +28,37 @@ module.exports = { //note: resolver functions should match to schema names
         } catch (err) {
             throw err;
         }
+    },
+    login: async ({email, password}) => { // destruct fr args
+        try {
+            const loggedUser = await UserMGS.findOne({ email: email });
+            //todo: merge auth errors below w general msg
+            if (!loggedUser) {
+                throw new Error('Auth Error: User does not exist.');
+            }
+            const authMatch = await bcrypt.compare(password, loggedUser.password);
+
+            if (!authMatch) {
+                throw new Error('Auth Error: Invalid password.')
+            }
+
+            const token = jwt.sign({
+                userId: loggedUser.id,
+                email: loggedUser.email
+            },
+            'secrethashprivatekey--alsoreplaceinserver',
+            {expiresIn: '1h'},
+            );
+
+            return {
+                userId: loggedUser.id,
+                token: token,
+                tokenExpiration: 1
+            }
+
+        } catch (err) {
+            throw err;
+        }
+
     }
 };

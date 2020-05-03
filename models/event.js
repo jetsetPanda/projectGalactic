@@ -19,6 +19,12 @@ const eventSchema = new Schema({
         type: Date,
         required: true
     },
+    category: {
+        type: String
+    },
+    discount: {
+        type: Boolean
+    },
     creator: {
         type: Schema.Types.ObjectID,
         ref: 'UserMGS'

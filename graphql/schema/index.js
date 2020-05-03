@@ -15,6 +15,8 @@ module.exports = buildSchema(`
             description: String!
             price: Float!
             date: String!
+            category: String
+            discount: Boolean
             creator: UserFX!
             
         }
@@ -26,6 +28,12 @@ module.exports = buildSchema(`
             password: String
             createdEvents: [EventFX!]
         
+        }
+        
+        type AuthData {
+            userId: ID!
+            token: String!
+            tokenExpiration: Int!
         }
         
         input EventInput {
@@ -44,6 +52,8 @@ module.exports = buildSchema(`
         type RootQueryFX {
             events: [EventFX!]!
             bookings: [BookingFX!]!
+            login(email: String!, password: String!): AuthData!
+            
         }
         
         type RootMutationFX {
