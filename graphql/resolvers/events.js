@@ -13,7 +13,10 @@ module.exports = {
             throw err;
         } //mgse constructor methods "all"
     },
-    createEvent: async args => {
+    createEvent: async (args, req) => {
+        if (!req.withAuth) {
+            throw new Error('Error: Not Authenticated');
+        }
         const event = new EventMGS({
             title: args.eventArg.title,
             description: args.eventArg.description,

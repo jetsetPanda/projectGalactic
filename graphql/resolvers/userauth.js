@@ -42,11 +42,11 @@ module.exports = { //note: resolver functions should match to schema names
                 throw new Error('Auth Error: Invalid password.')
             }
 
-            const token = jwt.sign({
+            const token = jwt.sign({ // maken einen token
                 userId: loggedUser.id,
                 email: loggedUser.email
             },
-            'secrethashprivatekey--alsoreplaceinserver',
+            'secrethashprivatekeyalsoreplaceinserver',
             {expiresIn: '1h'},
             );
 
