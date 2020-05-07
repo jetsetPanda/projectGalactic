@@ -29,17 +29,19 @@ class App extends Component {
                 <React.Fragment>
                     <AuthContext.Provider
                         value={{
+                            login: this.login,
+                            logout: this.logout,
                             token: this.state.token,
                             userId: this.state.userId,
-                            login: this.login,
-                            logout: this.logout
-                        }}>
+                        }}
+                    >
                         <MainNavbar/>
                         <main className='main'>
                             <Switch>
-                                {!this.state.token && <Redirect from="/" to="/auth" exact/> }
-                                {this.state.token && <Redirect from="/" to="/events" exact/> }
-                                {this.state.token && <Redirect from="/auth" to="/events" exact/> }
+                                {!this.state.token && <Redirect from="/" to="/auth" exact />}
+                                {!this.state.token && <Redirect from="/bookings" to="/auth" exact />}
+                                {this.state.token && <Redirect from="/" to="/events" exact />}
+                                {this.state.token && <Redirect from="/auth" to="/events" exact />}
                                 {!this.state.token && (
                                     <Route path="/auth" component={LoginPage} />
                                 )}

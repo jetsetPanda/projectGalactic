@@ -7,7 +7,7 @@ import './MainNavbar.css';
 
 const MainNavbar = props => (
 	<AuthContext.Consumer>
-		{(context) => {
+		{context => {
 			return (
 				<header className="main-nav">
 					<div className="main-nav-logo">
@@ -15,24 +15,32 @@ const MainNavbar = props => (
 					</div>
 					<nav className="main-nav-items">
 						<ul>
-							{context.token && (
+							{!context.token && (
 								<li>
 									<NavLink to="/auth">Login</NavLink>
 								</li>
 							)}
 								<li>
-									<NavLink to="/events">Events List</NavLink>
+									<NavLink to="/events">Events</NavLink>
 								</li>
 							{context.token && (
-								<li>
-									<NavLink to="/bookings">Join an Event</NavLink>
-								</li>
+								<React.Fragment>
+									<li>
+										<NavLink to="/bookings">Join an Event</NavLink>
+									</li>
+									<li>
+										<button onClick={context.logout}>
+											Logout
+										</button>
+									</li>
+								</React.Fragment>
+
 							)}
 
 						</ul>
 					</nav>
 				</header>
-			)
+			);
 		}}
 
 	</AuthContext.Consumer>

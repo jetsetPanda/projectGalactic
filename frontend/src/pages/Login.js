@@ -22,7 +22,7 @@ class LoginPage extends Component {
         })
     };
 
-    handleSubmit = (event) => {
+    handleSubmit = event => {
         event.preventDefault();
         const email = this.emailElemFX.current.value;
         const password = this.passwordElemFX.current.value;
@@ -104,7 +104,9 @@ class LoginPage extends Component {
                 </div>
                 <div className="form-action">
                     <button type="submit">Submit</button>
-                    <button type="button" onClick={this.handleClick}>Click to {this.state.isLoggedIn ? 'Signup': 'Login'}</button>
+                    <button type="button" onClick={this.handleClick}>
+                        Click to {this.state.isLoggedIn ? 'Signup': 'Login'}
+                    </button>
 
 
                 </div>
