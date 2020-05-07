@@ -11,3 +11,38 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.form-item label,
+.form-item input {
+  width: 100%;
+  display: block;
+}
+
+.form-item label {
+  margin-bottom: 0.5rem;
+}
+
+.form-item {
+  margin-bottom: 1rem;
+}
+
+.form-action button,
+.btn {
+  background: #5a4a8b;
+  color: #ffffff;
+  font-weight: bolder;
+  border: 1px solid #5a4a8b;
+  border-radius: 3px;
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  box-shadow: 1px 1px 5px rgba(0,0,0,0.35);
+}
+
+.form-action button:hover,
+.form-action button:active,
+.btn:hover,
+.btn:active{
+  background: #8eff3d;
+  border-color: #8eff3d;
+  color: #000000;
+}
