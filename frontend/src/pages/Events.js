@@ -7,8 +7,12 @@ class EventsPage extends Component {
     render() {
         return (
             <React.Fragment>
-                <Modal>
-                    Modals
+                <Modal
+                    title='Add Event'
+                    canCancel
+                    canConfirm
+                >
+                    Loremus Ipsimus
                 </Modal>
                 <h1>Events Control Panel</h1>
                 <div className='events-control'>
