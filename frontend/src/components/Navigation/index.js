@@ -26,7 +26,7 @@ const MainNavbar = () => (
 							{context.token && (
 								<React.Fragment>
 									<li>
-										<NavLink to="/bookings">Join an Event</NavLink>
+										<NavLink to="/bookings">My Bookings</NavLink>
 									</li>
 									<li>
 										<button className='logout' onClick={context.logout}>

@@ -167,13 +167,55 @@ class EventsPage extends Component {
     };
 
     handleBookEvent = () => {
+        if (!this.context.token) {
+            this.setState({selectedEvent: null});
+            return;
+        }
+        const requestBody = {
+            query: `
+                mutation {
+                    createBooking(eventId: "${this.state.selectedEvent._id}" ) {
+                      _id
+                      createdAt
+                      updatedAt
+                      event {
+                        title
+                        date
+                      }
+                    }
+                
+                }
+            `
+        };
+
+        const token = this.context.token;
+
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }).then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error('Booking Request Failed.');
+            }
+            return res.json();
+        }).then(resData => {
+            console.log(resData);
+            this.setState({selectedEvent: null});
+
+        }).catch(err => {
+            console.log(err)
+        });
 
     }
 
     render() {
         return (
             <React.Fragment>
-                {this.state.creating || this.state.selectedEvent && <Backdrop/>}
+                {(this.state.creating || this.state.selectedEvent) && <Backdrop/>}
                 {this.state.creating && <Modal
                     title='Add New Event'
                     canCancel
@@ -210,7 +252,7 @@ class EventsPage extends Component {
                     canConfirm
                     onConfirm={this.handleBookEvent}
                     onCancel={this.handleModalCancel}
-                    btnCopy="Book"
+                    btnCopy={ this.context.token ? "Book" : "Confirm" }
                 >
                     <h5>Date: {this.state.selectedEvent.date}</h5>
                     <h5>Event Details</h5>
