@@ -1,11 +1,14 @@
 import React, {Component} from 'react';
 
 import './Login.css'
+import AuthContext from '../context/AuthContext';
 
 class LoginPage extends Component {
     state = {
         isLoggedIn: true
     };
+
+    static contextType = AuthContext;
 
     constructor(props) {
         super(props);
@@ -19,7 +22,7 @@ class LoginPage extends Component {
         })
     };
 
-    handleSubmit = (event) => {
+    handleSubmit = event => {
         event.preventDefault();
         const email = this.emailElemFX.current.value;
         const password = this.passwordElemFX.current.value;
@@ -73,6 +76,13 @@ class LoginPage extends Component {
             }
             return res.json();
         }).then(resData => {
+            if (resData.data.login.token) {
+                this.context.login(
+                    resData.data.login.token,
+                    resData.data.login.userId,
+                    resData.data.login.tokenExpiration
+                );
+            }
             console.log(resData);
         }).catch(err => {
             console.log(err)
@@ -94,7 +104,9 @@ class LoginPage extends Component {
                 </div>
                 <div className="form-action">
                     <button type="submit">Submit</button>
-                    <button type="button" onClick={this.handleClick}>Click to {this.state.isLoggedIn ? 'Signup': 'Login'}</button>
+                    <button type="button" onClick={this.handleClick}>
+                        Click to {this.state.isLoggedIn ? 'Signup': 'Login'}
+                    </button>
 
 
                 </div>

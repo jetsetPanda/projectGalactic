@@ -15,7 +15,7 @@ module.exports = {
         } //mgse constructor methods "all"
     },
     createEvent: async (args, req) => {
-        if (!req.withAuth) {
+        if (!req.withAuth) { //withAuth middleware
             throw new Error('Error: Not Authenticated');
         }
         const event = new EventMGS({
