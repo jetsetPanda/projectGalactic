@@ -1,11 +1,10 @@
 import React from 'react';
 
 import './EventItem.css';
-import DotSpinner from "../../Spinners/DotSpinner";
 
 const EventItem = props => (
     <li key={props.eventId} className="events-list-item">
-        <DotSpinner/>
+
         <div>
             <h1>{props.event.title}</h1>
             <h2>${props.event.price} | {new Date(props.event.date).toLocaleDateString('us-US')}</h2>
@@ -14,7 +13,7 @@ const EventItem = props => (
         <div>
             {(props.cUser === props.event.creator._id) ?
                 <p className='btn'>View Your Event.</p> :
-                <button className='btn'>Event Details</button>
+                <button className='btn' onClick={props.detailModal.bind(this, props.eventId)}>Event Details</button>
             }
         </div>
     </li>

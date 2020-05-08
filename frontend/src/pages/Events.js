@@ -12,7 +12,8 @@ class EventsPage extends Component {
     state = {
         isLoading: true,
         creating: false,
-        eventsList: []
+        eventsList: [],
+        selectedEvent: null
     };
 
     static contextType = AuthContext;
@@ -112,7 +113,7 @@ class EventsPage extends Component {
     };
 
     handleModalCancel = () => {
-        this.setState({creating: false});
+        this.setState({ creating: false, selectedEvent: null });
     };
 
     fetchEvents() {
@@ -156,18 +157,30 @@ class EventsPage extends Component {
             console.log(err);
             this.setState({ isLoading: false });
         });
+    }
+
+    openDetailModal = eventId => {
+        this.setState(prevState => {
+            const selectedEvent = prevState.eventsList.find(event => event._id === eventId);
+            return {selectedEvent: selectedEvent}
+        })
+    };
+
+    handleBookEvent = () => {
 
     }
+
     render() {
         return (
             <React.Fragment>
-                {this.state.creating && <Backdrop/>}
+                {this.state.creating || this.state.selectedEvent && <Backdrop/>}
                 {this.state.creating && <Modal
                     title='Add New Event'
                     canCancel
                     canConfirm
                     onConfirm={this.handleModalConfirm}
                     onCancel={this.handleModalCancel}
+                    btnCopy="Confirm"
                 >
                     <h5>Enter Event Fields Below</h5>
                     <form>
@@ -191,6 +204,20 @@ class EventsPage extends Component {
                 </Modal>
                 }
 
+                {this.state.selectedEvent && <Modal
+                    title={<h1>{this.state.selectedEvent.title}</h1>}
+                    canCancel
+                    canConfirm
+                    onConfirm={this.handleBookEvent}
+                    onCancel={this.handleModalCancel}
+                    btnCopy="Book"
+                >
+                    <h5>Date: {this.state.selectedEvent.date}</h5>
+                    <h5>Event Details</h5>
+                    <p>{this.state.selectedEvent.description}</p>
+                </Modal>
+                }
+
                 <h1>Events </h1>
                 {this.context.token && (
                     <div className='events-control'>
@@ -203,6 +230,7 @@ class EventsPage extends Component {
                     <EventList
                         eventsList={this.state.eventsList}
                         authUserId={this.context.userId}
+                        onOpenDetailModal={this.openDetailModal}
                     />
                 }
             </React.Fragment>

@@ -5,7 +5,13 @@ import './EventList.css';
 
 const EventList = props => {
     const eventOutput = props.eventsList.map(event => {
-        return <EventItem key={event._id} eventId={event._id} event={event} cUser={props.authUserId}/>
+        return <EventItem
+            event={event}
+            key={event._id}
+            eventId={event._id}
+            cUser={props.authUserId}
+            detailModal={props.onOpenDetailModal}
+        />
     });
 
     return (
