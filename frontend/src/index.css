@@ -13,7 +13,8 @@ code {
 }
 
 .form-item label,
-.form-item input {
+.form-item input,
+.form-item textarea {
   width: 100%;
   display: block;
 }
