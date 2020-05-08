@@ -1,15 +1,19 @@
 import React, {Component} from 'react';
+// import {TrinityRingsSpinner} from "react-epic-spinners";
+import DotSpinner from "../components/Spinners/DotSpinner";
 
-import Modal from "../components/Modal/Modal";
-import Backdrop from "../components/Backdrop/Backdrop";
+import Modal from "../components/Modal";
+import Backdrop from "../components/Backdrop";
+import EventList from "../components/Events/EventList";
 import AuthContext from "../context/AuthContext";
 import './Events.css';
 
 class EventsPage extends Component {
     state = {
+        isLoading: true,
         creating: false,
         eventsList: []
-    }
+    };
 
     static contextType = AuthContext;
 
@@ -65,11 +69,6 @@ class EventsPage extends Component {
                       date
                       price
                       description
-                      creator {
-                        _id
-                        username
-                        email
-                      }
                     }
                 
                 }
@@ -91,7 +90,21 @@ class EventsPage extends Component {
             }
             return res.json();
         }).then(resData => {
-            this.fetchEvents();
+            this.setState(prevState => {
+                let {createEvent} = resData.data;
+                const updatedEventsList = [...prevState.eventsList];
+                updatedEventsList.push({
+                    _id: createEvent._id,
+                    title: createEvent.title,
+                    date: createEvent.date,
+                    price: createEvent.price,
+                    description: createEvent.description,
+                    creator:  {
+                        _id: this.context.userId
+                    }
+                });
+                return {eventsList : updatedEventsList}
+            })
         }).catch(err => {
             console.log(err)
         });
@@ -138,21 +151,14 @@ class EventsPage extends Component {
         }).then(resData => {
             console.log(resData);
             const events = resData.data.events;
-            this.setState({eventsList: events});
+            this.setState({eventsList: events, isLoading: false });
         }).catch(err => {
-            console.log(err)
+            console.log(err);
+            this.setState({ isLoading: false });
         });
 
     }
     render() {
-        const eventOutput = this.state.eventsList.map(event => {
-            return (
-              <li key={event._id} className="events-list-item">
-                  {event.title}
-              </li>) ;
-
-        });
-
         return (
             <React.Fragment>
                 {this.state.creating && <Backdrop/>}
@@ -192,9 +198,13 @@ class EventsPage extends Component {
                         <button className='btn' onClick={this.handleCreateEvent}>Create Event</button>
                     </div>
                 )}
-                <ul className="events-list">
-                    {eventOutput}
-                </ul>
+                {this.state.isLoading ?
+                    <DotSpinner/> :
+                    <EventList
+                        eventsList={this.state.eventsList}
+                        authUserId={this.context.userId}
+                    />
+                }
             </React.Fragment>
 
         );

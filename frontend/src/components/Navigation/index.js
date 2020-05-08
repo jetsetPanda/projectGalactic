@@ -5,7 +5,7 @@ import AuthContext from '../../context/AuthContext';
 
 import './MainNavbar.css';
 
-const MainNavbar = props => (
+const MainNavbar = () => (
 	<AuthContext.Consumer>
 		{context => {
 			return (
@@ -29,7 +29,7 @@ const MainNavbar = props => (
 										<NavLink to="/bookings">Join an Event</NavLink>
 									</li>
 									<li>
-										<button onClick={context.logout}>
+										<button className='logout' onClick={context.logout}>
 											Logout
 										</button>
 									</li>

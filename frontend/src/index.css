@@ -47,3 +47,9 @@ code {
   border-color: #8eff3d;
   color: #000000;
 }
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -61,3 +61,9 @@
     color: #292959;
     border-radius: 5px;
 }
+
+.logout:hover {
+    background: #a61214;
+    color: #ffffff;
+    border-radius: 5px;
+}
