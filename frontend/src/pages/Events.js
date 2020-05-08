@@ -7,7 +7,8 @@ import './Events.css';
 
 class EventsPage extends Component {
     state = {
-        creating: false
+        creating: false,
+        eventsList: []
     }
 
     static contextType = AuthContext;
@@ -18,6 +19,10 @@ class EventsPage extends Component {
         this.priceRef = React.createRef();
         this.dateRef = React.createRef();
         this.descRef = React.createRef();
+    }
+
+    componentDidMount() {
+        this.fetchEvents();
     }
 
     handleCreateEvent = () => {
@@ -86,7 +91,7 @@ class EventsPage extends Component {
             }
             return res.json();
         }).then(resData => {
-            console.log(resData);
+            this.fetchEvents();
         }).catch(err => {
             console.log(err)
         });
@@ -97,7 +102,57 @@ class EventsPage extends Component {
         this.setState({creating: false});
     };
 
+    fetchEvents() {
+        const requestBody = {
+            query: `
+                query {
+                    events {
+                      _id
+                      title
+                      date
+                      price
+                      description
+                      creator {
+                        _id
+                        username
+                        email
+                      }
+                    }
+                }
+            `
+        };
+
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json',
+                //below: auth not reqd in query
+                // 'Authorization': `Bearer ${token}`
+            }
+        }).then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error('Req Failed.');
+            }
+            return res.json();
+        }).then(resData => {
+            console.log(resData);
+            const events = resData.data.events;
+            this.setState({eventsList: events});
+        }).catch(err => {
+            console.log(err)
+        });
+
+    }
     render() {
+        const eventOutput = this.state.eventsList.map(event => {
+            return (
+              <li key={event._id} className="events-list-item">
+                  {event.title}
+              </li>) ;
+
+        });
+
         return (
             <React.Fragment>
                 {this.state.creating && <Backdrop/>}
@@ -138,9 +193,7 @@ class EventsPage extends Component {
                     </div>
                 )}
                 <ul className="events-list">
-                    <li className="events-list-item">
-                        Une
-                    </li>
+                    {eventOutput}
                 </ul>
             </React.Fragment>
 
