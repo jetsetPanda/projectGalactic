@@ -1,15 +1,22 @@
 import React, {Component} from 'react';
+// import {TrinityRingsSpinner} from "react-epic-spinners";
+import DotSpinner from "../components/Spinners/DotSpinner";
 
-import Modal from "../components/Modal/Modal";
-import Backdrop from "../components/Backdrop/Backdrop";
+import Modal from "../components/Modal";
+import Backdrop from "../components/Backdrop";
+import EventList from "../components/Events/EventList";
 import AuthContext from "../context/AuthContext";
 import './Events.css';
 
 class EventsPage extends Component {
     state = {
+        isLoading: true,
         creating: false,
-        eventsList: []
-    }
+        eventsList: [],
+        selectedEvent: null
+    };
+
+    isActive = true;
 
     static contextType = AuthContext;
 
@@ -65,11 +72,6 @@ class EventsPage extends Component {
                       date
                       price
                       description
-                      creator {
-                        _id
-                        username
-                        email
-                      }
                     }
                 
                 }
@@ -91,7 +93,21 @@ class EventsPage extends Component {
             }
             return res.json();
         }).then(resData => {
-            this.fetchEvents();
+            this.setState(prevState => {
+                let {createEvent} = resData.data;
+                const updatedEventsList = [...prevState.eventsList];
+                updatedEventsList.push({
+                    _id: createEvent._id,
+                    title: createEvent.title,
+                    date: createEvent.date,
+                    price: createEvent.price,
+                    description: createEvent.description,
+                    creator:  {
+                        _id: this.context.userId
+                    }
+                });
+                return {eventsList : updatedEventsList}
+            })
         }).catch(err => {
             console.log(err)
         });
@@ -99,7 +115,7 @@ class EventsPage extends Component {
     };
 
     handleModalCancel = () => {
-        this.setState({creating: false});
+        this.setState({ creating: false, selectedEvent: null });
     };
 
     fetchEvents() {
@@ -138,30 +154,87 @@ class EventsPage extends Component {
         }).then(resData => {
             console.log(resData);
             const events = resData.data.events;
-            this.setState({eventsList: events});
+            if (this.isActive) {
+                this.setState({eventsList: events, isLoading: false });
+            }
+
+        }).catch(err => {
+            console.log(err);
+            if (this.isActive) {
+                this.setState({ isLoading: false });
+            }
+
+        });
+    }
+
+    openDetailModal = eventId => {
+        this.setState(prevState => {
+            const selectedEvent = prevState.eventsList.find(event => event._id === eventId);
+            return {selectedEvent: selectedEvent}
+        })
+    };
+
+    handleBookEvent = () => {
+        if (!this.context.token) {
+            this.setState({selectedEvent: null});
+            return;
+        }
+        const requestBody = {
+            query: `
+                mutation {
+                    createBooking(eventId: "${this.state.selectedEvent._id}" ) {
+                      _id
+                      createdAt
+                      updatedAt
+                      event {
+                        title
+                        date
+                      }
+                    }
+                
+                }
+            `
+        };
+
+        const token = this.context.token;
+
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        }).then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error('Booking Request Failed.');
+            }
+            return res.json();
+        }).then(resData => {
+            console.log(resData);
+            this.setState({selectedEvent: null});
+
         }).catch(err => {
             console.log(err)
         });
 
+    };
+
+    componentWillUnmount() {
+        this.isActive = false;
     }
+
     render() {
-        const eventOutput = this.state.eventsList.map(event => {
-            return (
-              <li key={event._id} className="events-list-item">
-                  {event.title}
-              </li>) ;
-
-        });
-
         return (
             <React.Fragment>
-                {this.state.creating && <Backdrop/>}
+                {(this.state.creating || this.state.selectedEvent) && <Backdrop/>}
                 {this.state.creating && <Modal
                     title='Add New Event'
                     canCancel
                     canConfirm
                     onConfirm={this.handleModalConfirm}
                     onCancel={this.handleModalCancel}
+                    btnCopy="Confirm"
                 >
                     <h5>Enter Event Fields Below</h5>
                     <form>
@@ -185,6 +258,20 @@ class EventsPage extends Component {
                 </Modal>
                 }
 
+                {this.state.selectedEvent && <Modal
+                    title={<h1>{this.state.selectedEvent.title}</h1>}
+                    canCancel
+                    canConfirm
+                    onConfirm={this.handleBookEvent}
+                    onCancel={this.handleModalCancel}
+                    btnCopy={ this.context.token ? "Book" : "Confirm" }
+                >
+                    <h5>Date: {this.state.selectedEvent.date}</h5>
+                    <h5>Event Details</h5>
+                    <p>{this.state.selectedEvent.description}</p>
+                </Modal>
+                }
+
                 <h1>Events </h1>
                 {this.context.token && (
                     <div className='events-control'>
@@ -192,9 +279,14 @@ class EventsPage extends Component {
                         <button className='btn' onClick={this.handleCreateEvent}>Create Event</button>
                     </div>
                 )}
-                <ul className="events-list">
-                    {eventOutput}
-                </ul>
+                {this.state.isLoading ?
+                    <DotSpinner/> :
+                    <EventList
+                        eventsList={this.state.eventsList}
+                        authUserId={this.context.userId}
+                        onOpenDetailModal={this.openDetailModal}
+                    />
+                }
             </React.Fragment>
 
         );
