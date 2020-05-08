@@ -16,6 +16,8 @@ class EventsPage extends Component {
         selectedEvent: null
     };
 
+    isActive = true;
+
     static contextType = AuthContext;
 
     constructor(props) {
@@ -152,10 +154,16 @@ class EventsPage extends Component {
         }).then(resData => {
             console.log(resData);
             const events = resData.data.events;
-            this.setState({eventsList: events, isLoading: false });
+            if (this.isActive) {
+                this.setState({eventsList: events, isLoading: false });
+            }
+
         }).catch(err => {
             console.log(err);
-            this.setState({ isLoading: false });
+            if (this.isActive) {
+                this.setState({ isLoading: false });
+            }
+
         });
     }
 
@@ -210,6 +218,10 @@ class EventsPage extends Component {
             console.log(err)
         });
 
+    };
+
+    componentWillUnmount() {
+        this.isActive = false;
     }
 
     render() {
