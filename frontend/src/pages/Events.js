@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-// import {TrinityRingsSpinner} from "react-epic-spinners";
+import {TrinityRingsSpinner} from "react-epic-spinners";
 import DotSpinner from "../components/Spinners/DotSpinner";
 
 import Modal from "../components/Modal";
@@ -283,6 +283,11 @@ class EventsPage extends Component {
                         <button className='btn' onClick={this.handleCreateEvent}>Create Event</button>
                     </div>
                 )}
+
+                {this.state.eventsList.length <= 0 &&
+                    <TrinityRingsSpinner color="purple" style={{margin:"auto"}}/>
+                }
+
                 {this.state.isLoading ?
                     <DotSpinner/> :
                     <EventList
