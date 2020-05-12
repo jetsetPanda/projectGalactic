@@ -2,6 +2,7 @@ const BookingMGS = require('../../models/booking');
 const EventMGS = require('../../models/event');
 const { dateHelper } = require('../../helpers/index');
 const { getUser, getEvent } = require('./getters');
+const { transformEvent } = require('./getters');
 
 const transformBooking = bookingObj => {
     return {
