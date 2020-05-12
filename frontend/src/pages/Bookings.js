@@ -3,6 +3,8 @@ import React, {Component} from 'react';
 import {ScalingSquaresSpinner} from "react-epic-spinners";
 import AuthContext from "../context/AuthContext";
 
+import BookingList from "../components/Bookings/BookingList";
+
 class BookingsPage extends Component {
     state = {
         isLoading: false,
@@ -54,24 +56,59 @@ class BookingsPage extends Component {
         });
     }
 
+    handleDeleteBooking = deletingBookingId => {
+        this.setState({ isLoading: true });
+        const requestBody = {
+            query: `
+                mutation {
+                    cancelBooking(bookingId: "${deletingBookingId}" ) {
+                        title
+                        date
+                        creator {
+                            _id
+                            email
+                        }
+                    }
+                }
+            `
+        };
+
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.context.token}`
+            }
+        }).then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error('Req Failed.');
+            }
+            return res.json();
+        }).then(resData => {
+            this.setState(prevState => {
+                const updatedBookings = prevState.bookingsList.filter(booking => {
+                    return booking._id !== deletingBookingId;
+                });
+                return {bookingsList: updatedBookings, isLoading: false }
+            });
+        }).catch(err => {
+            console.log(err);
+            this.setState({ isLoading: false });
+        });
+    };
+
     render() {
         return (
             <React.Fragment>
+                <div>
+                    <h1>My Booked Events</h1>
                 {this.state.isLoading ? (
                     <ScalingSquaresSpinner color='purple'/>
                 ) : (
-                <div>
-                    <h1>My Booked Events</h1>
-                    <ul>
-                        {this.state.bookingsList.map(booking => (
-                            <li key={booking._id}>
-                                {booking.event.title} - {new Date(booking.event.date).toLocaleDateString()}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                    <BookingList bookingsList={this.state.bookingsList} onDelete={this.handleDeleteBooking}/>
                 )}
-
+                </div>
             </React.Fragment>
         );
     }
