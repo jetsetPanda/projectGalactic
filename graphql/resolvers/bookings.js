@@ -1,20 +1,6 @@
 const BookingMGS = require('../../models/booking');
 const EventMGS = require('../../models/event');
-const { dateHelper } = require('../../helpers/index');
-const { getUser, getEvent } = require('./getters');
-const { transformEvent } = require('./getters');
-
-const transformBooking = bookingObj => {
-    return {
-        ...bookingObj._doc,
-        _id: bookingObj.id,
-        user: getUser.bind(this, bookingObj._doc.user),
-        event: getEvent.bind(this, bookingObj._doc.event),
-        createdAt: dateHelper(bookingObj._doc.createdAt),
-        updatedAt: dateHelper(bookingObj._doc.updatedAt)
-    }
-};
-
+const { transformEvent, transformBooking } = require('./getters');
 
 module.exports = { //note: resolver functions should match to schema names
     bookings: async (args, req) => {

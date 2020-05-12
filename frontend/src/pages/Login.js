@@ -35,32 +35,40 @@ class LoginPage extends Component {
 
         let requestBody = {
             query: `
-                query {
+                query LoginQ($emailss: String!, $passvurd: String!) {
                     login(
-                        email: "${email}",
-                        password: "${password}"
+                        email: $emailss,
+                        password: $passvurd
                     ) {
                         userId
                         token
                         tokenExpiration
                     }
                 }
-            `
+            `,
+            variables: {
+                emailss: email,
+                passvurd: password
+            }
         };
 
         if (!this.state.isLoggedIn) {
             requestBody = {
                 query: `
-                mutation{
+                mutation newAccount($emailz: String!, $passwordz: String!){
                     createUser(userArg: {
-                        email: "${email}",
-                        password: "${password}"
+                        email: $emailz,
+                        password: $passwordz
                     }) {
                         _id
                         email
                     }
                 }
-            `,
+                `,
+                variables: {
+                    emailz: email,
+                    passwordz: password
+                }
             };
         }
 
@@ -87,13 +95,15 @@ class LoginPage extends Component {
         }).catch(err => {
             console.log(err)
         });
-
     };
 
     render() {
         return (
             <form className="login-form" onSubmit={this.handleSubmit}>
-                <h1 style={{color: "#75d11a"}}>Sign In</h1>
+                {this.state.isLoggedIn ?
+                    <h1 style={{color: "#75d11a"}}>Sign In</h1> :
+                    <h1 style={{color: "#5a4a8b"}}>Create Account</h1>
+                }
                 <div className="form-item">
                     <label htmlFor="email">E-Mail</label>
                     <input type="email" id="email" ref={this.emailElemFX}/>
@@ -105,7 +115,7 @@ class LoginPage extends Component {
                 <div className="form-action">
                     <button type="submit">Submit</button>
                     <button type="button" onClick={this.handleClick}>
-                        Click to {this.state.isLoggedIn ? 'Signup': 'Login'}
+                        {this.state.isLoggedIn ? 'Create Account': 'Switch to Sign In'}
                     </button>
 
 

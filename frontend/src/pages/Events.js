@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-// import {TrinityRingsSpinner} from "react-epic-spinners";
+import {TrinityRingsSpinner} from "react-epic-spinners";
 import DotSpinner from "../components/Spinners/DotSpinner";
 
 import Modal from "../components/Modal";
@@ -59,13 +59,13 @@ class EventsPage extends Component {
 
         const requestBody = {
             query: `
-                mutation {
+                mutation makeEvent($titulo: String!, $descript: String!, $date: String!, $prix: Float!){
                     createEvent(
                         eventArg: {
-                          title: "${title}"
-                          description: "${description}"
-                          date: "${date}"
-                          price: ${price}
+                          title: $titulo
+                          description: $descript
+                          date: $date
+                          price: $prix
                     }) {
                       _id
                       title
@@ -75,7 +75,13 @@ class EventsPage extends Component {
                     }
                 
                 }
-            `
+            `,
+            variables: {
+                titulo: title,
+                descript: description,
+                date: date,
+                prix: price
+            }
         };
 
         const token = this.context.token;
@@ -181,19 +187,17 @@ class EventsPage extends Component {
         }
         const requestBody = {
             query: `
-                mutation {
-                    createBooking(eventId: "${this.state.selectedEvent._id}" ) {
+                mutation MakeBooking($bkId: ID!) {
+                    createBooking(eventId: $bkId ) {
                       _id
                       createdAt
                       updatedAt
-                      event {
-                        title
-                        date
-                      }
                     }
-                
                 }
-            `
+            `,
+            variables: {
+                bkId: this.state.selectedEvent._id
+            }
         };
 
         const token = this.context.token;
@@ -279,6 +283,11 @@ class EventsPage extends Component {
                         <button className='btn' onClick={this.handleCreateEvent}>Create Event</button>
                     </div>
                 )}
+
+                {this.state.eventsList.length <= 0 &&
+                    <TrinityRingsSpinner color="purple" style={{margin:"auto"}}/>
+                }
+
                 {this.state.isLoading ?
                     <DotSpinner/> :
                     <EventList
