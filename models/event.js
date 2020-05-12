@@ -26,7 +26,7 @@ const eventSchema = new Schema({
         type: Boolean
     },
     creator: {
-        type: Schema.Types.ObjectID,
+        type: Schema.Types.ObjectId,
         ref: 'UserMGS'
     }
 });
