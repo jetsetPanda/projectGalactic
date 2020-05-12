@@ -53,3 +53,20 @@ code {
   justify-content: center;
   align-items: center;
 }
+
+.btn-cxl {
+  background: #5a4a8b;
+  color: #ffffff;
+  font-weight: bolder;
+  border: 1px solid #41376e;
+  border-radius: 3px;
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  box-shadow: 1px 1px 5px rgba(0,0,0,0.55);
+}
+
+.btn-cxl:hover {
+  background: #a61214;
+  color: #ffffff;
+  border-radius: 5px;
+}
