@@ -72,7 +72,7 @@ const getUser = async userId => {
             _id: user.id,
             password: "hashed", //ako ra remove
             //below: summons function upon graphQL query
-            createdEvents: eventLoader.loadMany.bind(this, user._doc.createdEvents)
+            createdEvents: () => eventLoader.loadMany(user._doc.createdEvents)
         };
     } catch (err) {
         throw err;
