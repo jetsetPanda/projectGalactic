@@ -22,7 +22,7 @@ module.exports = { //note: resolver functions should match to schema names
             throw new Error('Error: Not Authenticated');
         }
         try {
-            const bookings = await BookingMGS.find();
+            const bookings = await BookingMGS.find({user:req.userId});
             return bookings.map(booking => {
                 return transformBooking(booking);
             });
