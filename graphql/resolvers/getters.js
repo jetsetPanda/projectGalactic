@@ -23,6 +23,18 @@ const transformEvent = eventObj => {
         creator: getUser.bind(this, eventObj.creator)
     };
 };
+
+const transformBooking = bookingObj => {
+    return {
+        ...bookingObj._doc,
+        _id: bookingObj.id,
+        user: getUser.bind(this, bookingObj._doc.user),
+        event: getSingleEvent.bind(this, bookingObj._doc.event),
+        createdAt: dateHelper(bookingObj._doc.createdAt),
+        updatedAt: dateHelper(bookingObj._doc.updatedAt)
+    }
+};
+
 //
 // const transformUser = userObj => {
 //     return {
@@ -53,6 +65,21 @@ const getSingleEvent = async eventId => {
     }
 };
 
+const getUser = async userId => {
+    try {
+        const user = await userLoader.load(userId.toString()); //invoke toStr to bypass proto type error // ids are objs in mdb
+        return {
+            ...user._doc,
+            _id: user.id,
+            //password: "hashed", //ako ra remove
+            //below: summons function upon graphQL query
+            createdEvents: () => eventLoader.loadMany(user._doc.createdEvents)
+        };
+    } catch (err) {
+        throw err;
+    }
+};
+
 // const getUsers = async userIds => {
 //     try {
 //         const users = await UserMGS.find({ _id: { $in: userId } });
@@ -64,22 +91,8 @@ const getSingleEvent = async eventId => {
 //     }
 // };
 
-const getUser = async userId => {
-    try {
-        const user = await userLoader.load(userId.toString()); //invoke toStr to bypass proto type error // ids are objs in mdb
-        return {
-            ...user._doc,
-            _id: user.id,
-            password: "hashed", //ako ra remove
-            //below: summons function upon graphQL query
-            createdEvents: () => eventLoader.loadMany(user._doc.createdEvents)
-        };
-    } catch (err) {
-        throw err;
-    }
-};
-
 // exports.getEventsList = getEventsList;
-exports.getEvent = getSingleEvent;
-exports.getUser = getUser;
+// exports.getEvent = getSingleEvent;
+// exports.getUser = getUser;
 exports.transformEvent = transformEvent;
+exports.transformBooking = transformBooking;
