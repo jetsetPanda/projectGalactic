@@ -35,32 +35,40 @@ class LoginPage extends Component {
 
         let requestBody = {
             query: `
-                query {
+                query LoginQ($emailss: String!, $passvurd: String!) {
                     login(
-                        email: "${email}",
-                        password: "${password}"
+                        email: $emailss,
+                        password: $passvurd
                     ) {
                         userId
                         token
                         tokenExpiration
                     }
                 }
-            `
+            `,
+            variables: {
+                emailss: email,
+                passvurd: password
+            }
         };
 
         if (!this.state.isLoggedIn) {
             requestBody = {
                 query: `
-                mutation{
+                mutation Login($emailz: String!, $passwordz: String!){
                     createUser(userArg: {
-                        email: "${email}",
-                        password: "${password}"
+                        email: $emailz,
+                        password: $passwordz
                     }) {
                         _id
                         email
                     }
                 }
-            `,
+                `,
+                variables: {
+                    emailz: email,
+                    passwordz: password
+                }
             };
         }
 
