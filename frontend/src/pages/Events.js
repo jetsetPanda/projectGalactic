@@ -192,10 +192,6 @@ class EventsPage extends Component {
                       _id
                       createdAt
                       updatedAt
-                      event {
-                        title
-                        date
-                      }
                     }
                 }
             `,
