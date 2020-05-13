@@ -4,11 +4,14 @@ import {ScalingSquaresSpinner} from "react-epic-spinners";
 import AuthContext from "../context/AuthContext";
 
 import BookingList from "../components/Bookings/BookingList";
+import BookingChart from "../components/Bookings/BookingChart";
+import TabController from "../components/Bookings/TabController";
 
 class BookingsPage extends Component {
     state = {
         isLoading: false,
-        bookingsList: []
+        bookingsList: [],
+        currentTab: 'list'
     };
 
     static contextType = AuthContext;
@@ -28,6 +31,7 @@ class BookingsPage extends Component {
                       event {
                         _id
                         title
+                        price
                         date
                       }                                         }
                 }
@@ -101,18 +105,49 @@ class BookingsPage extends Component {
         });
     };
 
+    handleTabSwitch = newTab => {
+        if (newTab === 'list') {
+            this.setState({ currentTab: 'list' })
+        } else {
+            this.setState({ currentTab: 'chart' })
+        }
+    };
+
     render() {
+        let content = <ScalingSquaresSpinner color='purple'/>;
+        if (!this.state.isLoading) {
+            content = (
+                <React.Fragment>
+                    <div>
+                        <TabController
+                            activeTab={this.state.currentTab}
+                            onChange={this.handleTabSwitch}
+                        />
+                    </div>
+                    <div>
+                        {this.state.currentTab === 'list' ? (
+                            <BookingList
+                                bookingsList={this.state.bookingsList}
+                                onDelete={this.handleDeleteBooking}
+                            />
+                        ) : (
+                            <BookingChart
+                                bookingsList={this.state.bookingsList}
+                            />
+                        )
+                        }
+
+                    </div>
+                </React.Fragment>
+            );
+        }
         return (
-            <React.Fragment>
-                <div>
+            <div>
                     <h1>My Booked Events</h1>
-                {this.state.isLoading ? (
-                    <ScalingSquaresSpinner color='purple'/>
-                ) : (
-                    <BookingList bookingsList={this.state.bookingsList} onDelete={this.handleDeleteBooking}/>
-                )}
-                </div>
-            </React.Fragment>
+                    <React.Fragment>
+                        {content}
+                    </React.Fragment>
+            </div>
         );
     }
 }
