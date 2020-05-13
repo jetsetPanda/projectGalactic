@@ -28,6 +28,7 @@ class BookingsPage extends Component {
                       event {
                         _id
                         title
+                        price
                         date
                       }                                         }
                 }
