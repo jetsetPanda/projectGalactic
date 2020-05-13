@@ -49,6 +49,12 @@ const transformBooking = bookingObj => {
 const getEvents = async eventIds => { //args: array
     try {
         const events = await EventMGS.find({ _id: { $in: eventIds } }); //mgse query to look inside args arr
+        events.sort((a,b) => { // bug fix: sort res to match eventIds arg - so dataLoader can link items
+            return (
+                eventIds.indexOf(a._id.toString()) - eventIds.indexOf(b._id.toString())
+            );
+        });
+        console.log(events, eventIds);
         return events.map(event => {
             return transformEvent(event);
         });
