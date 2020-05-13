@@ -1,4 +1,5 @@
 import React from 'react';
+import { Bar as BarChart } from 'react-chartjs-2';
 
 const BOOKING_PARAMS = {
     Low: {
@@ -16,7 +17,8 @@ const BOOKING_PARAMS = {
 };
 
 const BookingChart = props => {
-    const output = [];
+    const chartData = {labels: [], datasets: []};
+    let values = [];
     for (const param in BOOKING_PARAMS) {
         const filteredBookingsCount = props.bookingsList.reduce((prev, currentBkg) => {
             if (
@@ -28,14 +30,20 @@ const BookingChart = props => {
                 return prev;
             }
         }, 0);
-        output[param] = filteredBookingsCount;
+        values.push(filteredBookingsCount);
+        chartData.labels.push(param);
+        chartData.datasets.push({
+            fillColor: "rgba(76,220,14,0.5)",
+            strokeColor: "rgba(220,220,220,0.8)",
+            highlightFill: "rgba(220,220,220,0.75)",
+            highlightStroke: "rgba(220,220,220,1)",
+            data: values
+        });
+        values = [...values];
+        values[values.length -1] = 0;
     }
-    console.log(output);
-    return (
-        <div>
-            <button className="btn">Chart!</button>
-        </div>
-    )
+    console.log(chartData);
+    return <BarChart data={chartData}/>
 };
 
 export default BookingChart;
