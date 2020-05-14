@@ -23,5 +23,5 @@ MongoDB Interface
 ReactJS Frontend
 - context api for state management
 - functional and class components
-- fetch api x graphql consumption
+- graphql api queries/mutations
 - fun sassy colors and whiz bang modals
